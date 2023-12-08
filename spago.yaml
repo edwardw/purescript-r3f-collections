@@ -1,0 +1,13 @@
+package:
+  name: r3f-stories
+  dependencies:
+    - console
+    - effect
+    - prelude
+workspace:
+  package_set:
+    registry: 47.2.0
+  extra_packages:
+    react-r3f:
+      path: ../purescript-react-basic-r3f
+
