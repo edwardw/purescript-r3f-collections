@@ -1,13 +1,20 @@
 package:
   name: r3f-stories
   dependencies:
+    - arraybuffer
     - console
     - effect
+    - float32
     - prelude
+    - random
+    - react-basic
+    - react-basic-dom
+    - react-basic-hooks
+    - react-r3f
+    - tailrec
 workspace:
   package_set:
     registry: 47.2.0
   extra_packages:
     react-r3f:
       path: ../purescript-react-basic-r3f
-
