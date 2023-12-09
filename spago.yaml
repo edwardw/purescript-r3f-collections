@@ -12,9 +12,12 @@ package:
     - react-basic-hooks
     - react-r3f
     - tailrec
+    - untagged-union
 workspace:
   package_set:
     registry: 47.2.0
+  build_opts:
+    censor_library_warnings: all
   extra_packages:
     react-r3f:
       path: ../purescript-react-basic-r3f

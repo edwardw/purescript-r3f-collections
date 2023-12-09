@@ -19,17 +19,17 @@ import React.Basic.Hooks (Component, useLayoutEffect, useMemo, useRef)
 import React.Basic.Hooks as React
 import React.Basic.StrictMode as StrictMode
 import React.R3F.Drei.Controls (orbitControls)
+import React.R3F.Drei.Misc (perf)
 import React.R3F.Drei.Shaders (shaderMaterial)
 import React.R3F.Drei.Staging (stage)
 import React.R3F.Hooks (applyProps)
-import React.R3F.Three.Core (instancedBufferAttribute, matrix, setPosition, setRotation, updateMatrix)
+import React.R3F.Three.Core (getMatrix, instancedBufferAttribute, setPosition, setRotation, updateMatrix)
 import React.R3F.Three.Geometries (boxGeometry)
 import React.R3F.Three.Materials (meshLambertMaterial)
-import React.R3F.Three.Math (createColor)
 import React.R3F.Three.Objects (getGeometry, getInstanceMatrix, group, instancedMesh, setGeometry, setMatrixAt)
-import React.R3F.Three.Types (createVector3)
 import React.R3F.Three.Types as Three
 import React.R3F.Web (canvas)
+import Untagged.Castable (cast)
 import Web.DOM.NonElementParentNode as NonElementParentNode
 import Web.HTML as HTML
 import Web.HTML.HTMLDocument as HTMLDocument
@@ -50,15 +50,14 @@ main = do
 
 mkApp :: Component Unit
 mkApp = do
-  let
-    orbitControl = orbitControls {}
   cubes <- mkCubes
 
   React.component "" \_ -> React.do
     pure $ canvas
       { shadows: "soft"
       , children:
-          [ orbitControl
+          [ orbitControls {}
+          , perf { position: cast "bottom-right" }
           , stage { children: [ cubes 10_000 ] }
           ]
       }
@@ -69,8 +68,8 @@ mkCubes = do
     mat = meshLambertMaterial
       {}
       { attach: "material", vertexColors: true, toneMapped: false }
-  edgeColor <- createColor "black"
-  edgeSize <- createVector3 [ 0.15, 0.15, 0.15 ]
+  edgeColor <- Three.createColor "black"
+  edgeSize <- Three.createVector3 [ 0.15, 0.15, 0.15 ]
   edgeMat <- meshEdgeMaterial
     { transparent: true
     , polygonOffset: true
@@ -88,7 +87,6 @@ mkCubes = do
     (colors :: ABT.Float32Array) <- useMemo count \_ -> do
       let
         go { acc, i: 0 } = pure $ Done acc
-        go { acc, i } | i < 0 = pure $ Done acc
         go { acc, i } = do
           r <- randomRange 0.0 1.0
           g <- randomRange 0.0 1.0
@@ -102,7 +100,6 @@ mkCubes = do
         boundary = pow (toNumber count) 0.33333333 / 2.0
 
         go 0 = pure $ Done unit
-        go i | i < 0 = pure $ Done unit
         go i = do
           x <- randomRange (-boundary) boundary
           y <- randomRange (-boundary) boundary
@@ -113,7 +110,7 @@ mkCubes = do
           setPosition obj \_ _ _ -> [ x, y, z ]
           setRotation obj \_ _ _ -> [ xr, yr, zr ]
           updateMatrix obj
-          matrix obj >>= setMatrixAt ref (i - 1)
+          getMatrix obj >>= setMatrixAt ref (i - 1)
           pure $ Loop (i - 1)
 
       tailRecM go count
@@ -148,8 +145,8 @@ mkCubes = do
 
 meshEdgeMaterial :: forall props. { | props } -> Effect JSX
 meshEdgeMaterial = \props -> do
-  defaultColor <- createColor "white"
-  defaultSize <- createVector3 [ 1.0, 1.0, 1.0 ]
+  defaultColor <- Three.createColor "white"
+  defaultSize <- Three.createVector3 [ 1.0, 1.0, 1.0 ]
   pure $ shaderMaterial
     @"MeshEdgeMaterial"
     { color: defaultColor
