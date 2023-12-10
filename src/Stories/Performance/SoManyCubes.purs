@@ -3,6 +3,8 @@ module Stories.Performace.SoManyCubes where
 import Prelude
 
 import Control.Monad.Rec.Class (Step(..), tailRecM)
+import Control.Monad.ST.Class (liftST)
+import Data.Array.ST as STA
 import Data.ArrayBuffer.Typed as AB
 import Data.ArrayBuffer.Types as ABT
 import Data.Float32 as Float32
@@ -58,7 +60,7 @@ mkApp = do
       , children:
           [ orbitControls {}
           , perf { position: cast "bottom-right" }
-          , stage { children: [ cubes 10_000 ] }
+          , stage { children: [ cubes 100_000 ] }
           ]
       }
 
@@ -84,15 +86,17 @@ mkCubes = do
     ref <- useRef empty
     outlines <- useRef empty
 
-    (colors :: ABT.Float32Array) <- useMemo count \_ -> do
+    (colors :: ABT.Float32Array) <- useMemo count \_ -> unsafePerformEffect do
+      acc <- liftST $ STA.new
       let
-        go { acc, i: 0 } = pure $ Done acc
-        go { acc, i } = do
+        go 0 = pure $ Done acc
+        go n = do
           r <- randomRange 0.0 1.0
           g <- randomRange 0.0 1.0
           b <- randomRange 0.0 1.0
-          pure $ Loop { acc: acc <> map Float32.fromNumber' [ r, g, b ], i: i - 1 }
-      tailRecM go { acc: [], i: count } >>= AB.fromArray # unsafePerformEffect
+          void $ liftST $ STA.pushAll (map Float32.fromNumber' [ r, g, b ]) acc
+          pure $ Loop (n - 1)
+      tailRecM go count >>= STA.unsafeFreeze >>> liftST >>= AB.fromArray
 
     useLayoutEffect count do
       obj <- Three.createObject3D
