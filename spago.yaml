@@ -12,7 +12,7 @@ package:
     - react-basic-hooks
     - react-r3f
     - tailrec
-    - untagged-union
+    - typelevel-prelude
 workspace:
   package_set:
     registry: 47.2.0

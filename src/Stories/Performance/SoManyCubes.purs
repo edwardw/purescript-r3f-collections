@@ -15,6 +15,7 @@ import Effect (Effect)
 import Effect.Exception as Exception
 import Effect.Random (randomRange)
 import Effect.Unsafe (unsafePerformEffect)
+import Prim.Row (class Union)
 import React.Basic (JSX, empty)
 import React.Basic.DOM.Client as Client
 import React.Basic.Hooks (Component, useLayoutEffect, useMemo, useRef)
@@ -22,16 +23,17 @@ import React.Basic.Hooks as React
 import React.Basic.StrictMode as StrictMode
 import React.R3F.Drei.Controls (orbitControls)
 import React.R3F.Drei.Misc (perf)
-import React.R3F.Drei.Shaders (shaderMaterial)
+import React.R3F.Drei.Shaders (ShaderMaterialProps, shaderMaterial)
 import React.R3F.Drei.Staging (stage)
 import React.R3F.Hooks (applyProps)
 import React.R3F.Three.Core (getMatrix, instancedBufferAttribute, setPosition, setRotation, updateMatrix)
 import React.R3F.Three.Geometries (boxGeometry)
 import React.R3F.Three.Materials (meshLambertMaterial)
 import React.R3F.Three.Objects (getGeometry, getInstanceMatrix, group, instancedMesh, setGeometry, setMatrixAt)
+import React.R3F.Three.Types (Color, Vector3)
 import React.R3F.Three.Types as Three
 import React.R3F.Web (canvas)
-import Untagged.Castable (cast)
+import Type.Row (type (+))
 import Web.DOM.NonElementParentNode as NonElementParentNode
 import Web.HTML as HTML
 import Web.HTML.HTMLDocument as HTMLDocument
@@ -59,7 +61,7 @@ mkApp = do
       { shadows: "soft"
       , children:
           [ orbitControls {}
-          , perf { position: cast "bottom-right" }
+          , perf { position: "bottom-right" }
           , stage { children: [ cubes 100_000 ] }
           ]
       }
@@ -75,7 +77,7 @@ mkCubes = do
   edgeMat <- meshEdgeMaterial
     { transparent: true
     , polygonOffset: true
-    , polygonOffsetFactor: -10.0
+    , polygonOffsetFactor: -10
     , color: edgeColor
     , size: edgeSize
     , thickness: 0.001
@@ -147,7 +149,19 @@ mkCubes = do
         }
     pure $ group { children: [ cubes, cubeOutlines ] }
 
-meshEdgeMaterial :: forall props. { | props } -> Effect JSX
+type EdgeMatParams r =
+  ( color :: Color
+  , size :: Vector3
+  , thickness :: Number
+  , smoothness :: Number
+  | r
+  )
+
+meshEdgeMaterial
+  :: forall props props_ a b c d e
+   . Union props props_ (EdgeMatParams + (ShaderMaterialProps a b c d e) + ())
+  => { | props }
+  -> Effect JSX
 meshEdgeMaterial = \props -> do
   defaultColor <- Three.createColor "white"
   defaultSize <- Three.createVector3 [ 1.0, 1.0, 1.0 ]
