@@ -20,4 +20,5 @@ workspace:
     censor_library_warnings: all
   extra_packages:
     react-r3f:
-      path: ../purescript-react-basic-r3f
+      git: https://github.com/edwardw/purescript-react-r3f
+      ref: 0dc7306598a036be1b174d5dcb460a8715cd4df0
