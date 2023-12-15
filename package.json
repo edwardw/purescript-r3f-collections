@@ -1,5 +1,5 @@
 {
-  "name": "purescript-r3f-stories",
+  "name": "purescript-r3f-collections",
   "version": "1.0.0",
   "description": "",
   "main": "webpack.config.js",
@@ -22,6 +22,7 @@
   "dependencies": {
     "@react-three/drei": "^9.90.1",
     "@react-three/fiber": "^8.15.12",
+    "lil-gui": "^0.19.1",
     "r3f-perf": "^7.1.2",
     "react": "^18.2.0"
   }

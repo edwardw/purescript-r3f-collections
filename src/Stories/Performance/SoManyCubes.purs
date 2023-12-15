@@ -149,17 +149,16 @@ mkCubes = do
         }
     pure $ group { children: [ cubes, cubeOutlines ] }
 
-type EdgeMatParams r =
+type EdgeMatParams =
   ( color :: Color
   , size :: Vector3
   , thickness :: Number
   , smoothness :: Number
-  | r
   )
 
 meshEdgeMaterial
-  :: forall props props_ a b c d e
-   . Union props props_ (EdgeMatParams + (ShaderMaterialProps a b c d e) + ())
+  :: forall props props_ a b c d
+   . Union props props_ ((ShaderMaterialProps a b c d) + EdgeMatParams)
   => { | props }
   -> Effect JSX
 meshEdgeMaterial = \props -> do

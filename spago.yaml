@@ -1,5 +1,5 @@
 package:
-  name: r3f-stories
+  name: r3f-collections
   dependencies:
     - arraybuffer
     - console
