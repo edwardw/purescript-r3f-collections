@@ -5,6 +5,7 @@ package:
     - console
     - effect
     - float32
+    - integers
     - prelude
     - random
     - react-basic
