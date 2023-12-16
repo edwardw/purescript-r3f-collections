@@ -1,4 +1,4 @@
-module Stories.Performace.SoManyCubes where
+module Stories.Performance.SoManyCubes where
 
 import Prelude
 
