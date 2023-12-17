@@ -10,6 +10,7 @@ import Data.ArrayBuffer.Types as ABT
 import Data.Float32 as Float32
 import Data.Number (cos, pi, sin)
 import Data.Tuple.Nested (type (/\), (/\))
+import Effect (Effect)
 import Effect.Random (randomRange)
 import Effect.Unsafe (unsafePerformEffect)
 import Performace.SimplexNoise (noise2D)
@@ -22,14 +23,13 @@ import React.R3F.Drei.Shaders (ShaderMaterialProps, shaderMaterial)
 import React.R3F.Hooks (useFrame)
 import React.R3F.Three.Constants (doubleSide)
 import React.R3F.Three.Core (getAttribute, getElapsedTime, getIndex, instancedBufferAttribute, instancedBufferGeometry, lookAt, translate)
-import React.R3F.Three.Internal (null)
 import React.R3F.Three.Materials (meshStandardMaterial, setUniforms)
 import React.R3F.Three.Math (normalize, set4, w, x, y, z) as Math
 import React.R3F.Three.Math (vector4, vector4Default)
 import React.R3F.Three.Objects (group, mesh)
-import React.R3F.Three.Types (Color, Texture, createColor, createPlaneGeometry, createVector3)
+import React.R3F.Three.Types (Color, Texture, createColor, createPlaneGeometry, createVector3, placeholderTexture)
+import Record.Studio (mapUniformRecord, sequenceRecord)
 import Type.Row (type (+))
-import Unsafe.Coerce (unsafeCoerce)
 
 type GrassParams =
   { bW :: Number
@@ -47,15 +47,8 @@ mkGrass = do
     texture <- useTexture "/assets/textures/grass/blade_diffuse.jpg"
     alphaTexture <- useTexture "/assets/textures/grass/blade_alpha.jpg"
 
-    offsets /\ orientations /\ stretches /\ halfRootAngleSin /\ halfRootAngleCos <- useMemo (width /\ instances)
-      \_ -> unsafePerformEffect do
-        a /\ b /\ c /\ d /\ e <- getAttributeData instances width
-        (a' :: ABT.Float32Array) <- ArrayBuffer.fromArray $ map Float32.fromNumber' a
-        (b' :: ABT.Float32Array) <- ArrayBuffer.fromArray $ map Float32.fromNumber' b
-        (c' :: ABT.Float32Array) <- ArrayBuffer.fromArray $ map Float32.fromNumber' c
-        (d' :: ABT.Float32Array) <- ArrayBuffer.fromArray $ map Float32.fromNumber' d
-        (e' :: ABT.Float32Array) <- ArrayBuffer.fromArray $ map Float32.fromNumber' e
-        pure $ a' /\ b' /\ c' /\ d' /\ e'
+    grassInstances <- useMemo (width /\ instances) \_ -> unsafePerformEffect do
+      genGrassInstanceData instances width
 
     baseIndex /\ basePosition /\ baseUV <- useMemo params \_ -> unsafePerformEffect do
       baseGeo <- createPlaneGeometry params.bW params.bH 1 params.joints
@@ -84,19 +77,19 @@ mkGrass = do
                 , "attributes-uv": baseUV
                 , children:
                     [ instancedBufferAttribute
-                        { array: offsets, itemSize: 3 }
+                        { array: grassInstances.offsets, itemSize: 3 }
                         { attach: "attributes-offset" }
                     , instancedBufferAttribute
-                        { array: orientations, itemSize: 4 }
+                        { array: grassInstances.orientations, itemSize: 4 }
                         { attach: "attributes-orientation" }
                     , instancedBufferAttribute
-                        { array: stretches, itemSize: 1 }
+                        { array: grassInstances.stretches, itemSize: 1 }
                         { attach: "attributes-stretch" }
                     , instancedBufferAttribute
-                        { array: halfRootAngleSin, itemSize: 1 }
+                        { array: grassInstances.halfRootAngleSin, itemSize: 1 }
                         { attach: "attributes-halfRootAngleSin" }
                     , instancedBufferAttribute
-                        { array: halfRootAngleCos, itemSize: 1 }
+                        { array: grassInstances.halfRootAngleCos, itemSize: 1 }
                         { attach: "attributes-halfRootAngleCos" }
                     ]
                 }
@@ -124,7 +117,17 @@ mkGrass = do
       + 4.0 * noise2D (x / 100.0) (z / 100.0)
       + 0.2 * noise2D (x / 10.0) (z / 10.0)
 
-  getAttributeData instances width = do
+  genGrassInstanceData
+    :: Int
+    -> Number
+    -> Effect
+         { offsets :: ABT.Float32Array
+         , orientations :: ABT.Float32Array
+         , stretches :: ABT.Float32Array
+         , halfRootAngleSin :: ABT.Float32Array
+         , halfRootAngleCos :: ABT.Float32Array
+         }
+  genGrassInstanceData instances width = do
     offsets <- liftST $ STA.new
     orientations <- liftST $ STA.new
     stretches <- liftST $ STA.new
@@ -193,12 +196,19 @@ mkGrass = do
         pure $ Loop (i + 1)
 
     tailRecM go 0
-    a <- liftST $ STA.unsafeFreeze offsets
-    b <- liftST $ STA.unsafeFreeze orientations
-    c <- liftST $ STA.unsafeFreeze stretches
-    d <- liftST $ STA.unsafeFreeze halfRootAngleSin
-    e <- liftST $ STA.unsafeFreeze halfRootAngleCos
-    pure $ a /\ b /\ c /\ d /\ e
+    sequenceRecord $ mapUniformRecord
+      ( \x ->
+          STA.unsafeFreeze x
+            # liftST
+            >>= map Float32.fromNumber'
+              >>> ArrayBuffer.fromArray
+      )
+      { offsets
+      , orientations
+      , stretches
+      , halfRootAngleSin
+      , halfRootAngleCos
+      }
 
 type GrassMatParams =
   ( bladeHeight :: Number
@@ -220,8 +230,8 @@ grassMaterial props = unsafePerformEffect do
   pure $ shaderMaterial
     @"GrassMaterial"
     { bladeHeight: 1.0
-    , map: unsafeCoerce null
-    , alphaMap: unsafeCoerce null
+    , map: placeholderTexture
+    , alphaMap: placeholderTexture
     , time: 0.0
     , tipColor
     , bottomColor
