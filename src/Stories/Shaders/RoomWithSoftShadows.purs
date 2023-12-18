@@ -60,24 +60,9 @@ mkApp = do
           , ambientLight { intensity: 0.4 }
           , light unit
           , room unit
-          , sphere
-              { color: "hotpink"
-              , floatIntensity: 15.0
-              , position: [ 0.0, 5.0, -8.0 ]
-              , scale: 1.0
-              }
-          , sphere
-              { color: "hotpink"
-              , floatIntensity: 15.0
-              , position: [ 2.0, 4.0, -8.0 ]
-              , scale: 0.9
-              }
-          , sphere
-              { color: "hotpink"
-              , floatIntensity: 15.0
-              , position: [ -2.0, 2.0, -8.0 ]
-              , scale: 0.8
-              }
+          , sphere { position: [ 0.0, 5.0, -8.0 ], scale: 1.0 }
+          , sphere { position: [ 2.0, 4.0, -8.0 ], scale: 0.9 }
+          , sphere { position: [ -2.0, 2.0, -8.0 ], scale: 0.8 }
           , sky { inclination: 0.5, scale: 20.0 }
           ]
       }
@@ -182,14 +167,12 @@ mkRoom = do
   enableShadows props = props { castShadow = true, receiveShadow = true }
 
 mkSphere :: Component
-  { color :: String
-  , floatIntensity :: Number
-  , position :: Array Number
+  { position :: Array Number
   , scale :: Number
   }
 mkSphere = React.component "sphere" \props -> React.do
   pure $ float
-    { floatIntensity: props.floatIntensity
+    { floatIntensity: 15.0
     , children:
         [ mesh
             { castShadow: true
@@ -198,7 +181,7 @@ mkSphere = React.component "sphere" \props -> React.do
             , children:
                 [ sphereGeometry {} {}
                 , meshBasicMaterial
-                    { color: props.color
+                    { color: "hotpink"
                     , roughness: 1.0
                     }
                 ]
