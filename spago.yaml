@@ -43,4 +43,4 @@ workspace:
         ]
     react-r3f:
       git: https://github.com/edwardw/purescript-react-r3f
-      ref: 0db7283ecfa58b2ec57ea7f98fc951a965017850
+      ref: b286de4b6ac70441e7c3269a74d35a67dcdae1d3
