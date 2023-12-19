@@ -18,7 +18,7 @@ import Prim.Row (class Union)
 import React.Basic (JSX, empty)
 import React.Basic.Hooks (Component, useMemo, useRef)
 import React.Basic.Hooks as React
-import React.R3F.Drei.Loaders (useTexture)
+import React.R3F.Drei.Loaders (useTextures)
 import React.R3F.Drei.Shaders (ShaderMaterialProps, shaderMaterial)
 import React.R3F.Hooks (useFrame)
 import React.R3F.Three.Constants (doubleSide)
@@ -28,7 +28,7 @@ import React.R3F.Three.Math (normalize, set4, w, x, y, z) as Math
 import React.R3F.Three.Math (vector4, vector4Default)
 import React.R3F.Three.Objects (group, mesh)
 import React.R3F.Three.Types (Color, Texture, createColor, createPlaneGeometry, createVector3, placeholderTexture)
-import Record.Studio (mapUniformRecord, sequenceRecord)
+import Record.Extra (mapRecord, sequenceRecord)
 import Type.Row (type (+))
 
 type GrassParams =
@@ -44,8 +44,10 @@ mkGrass = do
   React.component "grass" \(params /\ width /\ instances) -> React.do
     materialRef <- useRef empty
     -- The two textures have been taken from "Realistic real-time grass rendering" by Eddie Lee, 2010
-    texture <- useTexture "/assets/textures/grass/blade_diffuse.jpg"
-    alphaTexture <- useTexture "/assets/textures/grass/blade_alpha.jpg"
+    textures <- useTextures
+      { map: "/assets/textures/grass/blade_diffuse.jpg"
+      , alphaMap: "/assets/textures/grass/blade_alpha.jpg"
+      }
 
     grassInstances <- useMemo (width /\ instances) \_ -> unsafePerformEffect do
       genGrassInstanceData instances width
@@ -95,8 +97,8 @@ mkGrass = do
                 }
             , grassMaterial
                 { ref: materialRef
-                , map: texture
-                , alphaMap: alphaTexture
+                , map: textures.map
+                , alphaMap: textures.alphaMap
                 , toneMapped: false
                 }
             ]
@@ -196,7 +198,7 @@ mkGrass = do
         pure $ Loop (i + 1)
 
     tailRecM go 0
-    sequenceRecord $ mapUniformRecord
+    sequenceRecord $ mapRecord
       ( \x ->
           STA.unsafeFreeze x
             # liftST

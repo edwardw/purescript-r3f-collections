@@ -12,7 +12,7 @@ package:
     - react-basic-dom
     - react-basic-hooks
     - react-r3f
-    - record-studio
+    - record-extra
     - tailrec
     - typelevel-prelude
 workspace:
@@ -43,4 +43,4 @@ workspace:
         ]
     react-r3f:
       git: https://github.com/edwardw/purescript-react-r3f
-      ref: b286de4b6ac70441e7c3269a74d35a67dcdae1d3
+      ref: 322933b9f41895f139f5c84e9a43181d35764e33
