@@ -115,21 +115,21 @@ mkApp = do
 
 mkJWST :: Component (Boolean -> Effect Unit)
 mkJWST = React.component "JWST" \set -> React.do
-    position /\ setPos <- useState' [ 0.0, 0.0, 0.0 ]
-    rotation /\ setRot <- useState' [ 0.0, 0.0, 0.0 ]
-    { nodes } <- useGLTF "/assets/gltf/jwst/jwst-transformed.glb"
+  position /\ setPos <- useState' [ 0.0, 0.0, 0.0 ]
+  rotation /\ setRot <- useState' [ 0.0, 0.0, 0.0 ]
+  { nodes } <- useGLTF "/assets/gltf/jwst/jwst-transformed.glb"
 
-    useFrame \state _ -> do
-      t <- (_ / 4.0) <$> getElapsedTime state.clock
-      setRot [ cos t / 8.0, sin t / 4.0, 0.15 + sin t / 8.0 ]
-      setPos [ 0.0, -0.2 + cos t / 6.0, 0.0 ]
+  useFrame \state _ -> do
+    t <- (_ / 4.0) <$> getElapsedTime state.clock
+    setRot [ cos t / 8.0, sin t / 4.0, 0.15 + sin t / 8.0 ]
+    setPos [ 0.0, -0.2 + cos t / 6.0, 0.0 ]
 
-    pure $ group
-      { scale: 0.07
-      , position
-      , rotation
-      , onPointerOver: set true
-      , onPointerOut: set false
-      , children: [ mesh nodes."Object_8" ]
-      }
+  pure $ group
+    { scale: 0.07
+    , position
+    , rotation
+    , onPointerOver: set true
+    , onPointerOut: set false
+    , children: [ mesh nodes."Object_8" ]
+    }
 
